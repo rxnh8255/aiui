@@ -51,3 +51,12 @@ window.pushPlugin.startText("message",function () {
     console.log(err);
 });
 ```
+
+5.TTS合成语音
+```javascript
+window.pushPlugin.ttsPlay("message",function () {
+    console.log("ok");
+},function (err){
+    console.log(err);
+});
+```
