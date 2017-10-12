@@ -1,10 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-aiui"
-    version="1.0.5"
+    version="1.0.6"
     xmlns="http://apache.org/cordova/ns/plugins/1.0">
     <name>AIUIPlugin</name>
     <dependency id="cordova-plugin-compat" version="^1.0.0" />
-
+    <preference name="APPID" />
     <js-module name="AIUIPlugin" src="www/AIUIPlugin.js">
         <clobbers target="AIUIPlugin" />
     </js-module>
@@ -15,6 +15,11 @@
             </feature>
         </config-file>
 
+        <config-file target="AndroidManifest.xml" parent="/manifest/application">
+        <meta-data
+            android:name="com.blanktrack.appid"
+            android:value="$APPID\0" />
+        </config-file>
         <config-file parent="/*" target="AndroidManifest.xml">
             <uses-permission android:name="android.permission.INTERNET"/>
             <uses-permission android:name="android.permission.RECORD_AUDIO"/>

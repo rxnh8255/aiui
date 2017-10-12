@@ -3,7 +3,7 @@
 ## Installing the plugin
 
 ```
-cordova plugin add cordova-plugin-aiui
+cordova plugin add cordova-plugin-aiui --variable APPID=your aiuiID
 ```
 
 

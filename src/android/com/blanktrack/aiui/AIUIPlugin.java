@@ -2,7 +2,7 @@ package com.blanktrack.aiui;
 
 import android.Manifest;
 import android.content.Context;
-import android.content.SharedPreferences;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.os.Bundle;
@@ -61,7 +61,6 @@ public class AIUIPlugin extends CordovaPlugin {
     protected void getMicPermission(int requestCode) {
         PermissionHelper.requestPermission(this, requestCode, permission);
     }
-
     /**
      * Called after plugin construction and fields have been initialized.
      * Prefer to use pluginInitialize instead since there is no value in
@@ -74,7 +73,14 @@ public class AIUIPlugin extends CordovaPlugin {
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         Context context = this.cordova.getActivity().getApplicationContext();
 
-        SpeechUtility.createUtility(context, "appid=57a016c4");
+        ApplicationInfo applicationInfo = null;
+        try {
+            applicationInfo = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        SpeechUtility.createUtility(context, "appid="+applicationInfo.metaData.getString("com.blanktrack.appid"));
 
         mTts = SpeechSynthesizer.createSynthesizer(context, mTtsInitListener);
         super.initialize(cordova, webView);
