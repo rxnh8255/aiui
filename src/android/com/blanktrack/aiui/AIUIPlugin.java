@@ -129,58 +129,114 @@ public class AIUIPlugin extends CordovaPlugin {
         callbackContext.sendPluginResult(result);
 
     }
+    /**
+     * Called when the system is about to start resuming a previous activity.
+     *
+     * @param multitasking Flag indicating if multitasking is turned on for app
+     */
+    @Override
+    public void onPause(boolean multitasking) {
+        super.onPause(multitasking);
+        if (null != this.mAIUIAgent) {
+            AIUIMessage stopMsg = new AIUIMessage(AIUIConstant.CMD_STOP, 0, 0, null, null);
+            mAIUIAgent.sendMessage(stopMsg);
+
+            this.mAIUIAgent.destroy();
+            this.mAIUIAgent = null;
+        }
+    }
 
     @Override
     public boolean execute(final String action, final JSONArray args, final CallbackContext callbackContext) throws JSONException {
-        JSONObject arg_object = args.getJSONObject(0);
+        final JSONObject arg_object = args.getJSONObject(0);
         checkAIUIAgent();
         if ("start".equals(action)) {
-            Log.i(TAG, "start voice nlp");
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    Log.i(TAG, "start voice nlp");
+                    promptForRecord();
+                    callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
+                }
+            });
 
-            promptForRecord();
 
-        } else if ("stop".equals(action)) {
+        }else if("registFamily".equals(action)){
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        String familyId = arg_object.getString("familyId");
+                        String setParams = "\"audioparams\":{\"pers_param\":\"{\"family\":\""+familyId+"\"}\"}";
+                        AIUIMessage setMsg = new AIUIMessage(AIUIConstant.CMD_SET_PARAMS, 0 , 0, setParams, null);
+                        mAIUIAgent.sendMessage(setMsg);
+                        Log.i(TAG,"registFamily success");
+                        callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
+                    } catch (JSONException e) {
+                        callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.ERROR,e.toString()) );
+                    }
+
+                }
+            });
+
+        }
+        else if ("stop".equals(action)) {
             Log.i(TAG, "stop voice nlp");
             // 停止录音
-            String params = "sample_rate=16000,data_type=audio";
-            AIUIMessage stopWriteMsg = new AIUIMessage(AIUIConstant.CMD_STOP_RECORD, 0, 0, params, null);
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    String params = "sample_rate=16000,data_type=audio";
+                    AIUIMessage stopWriteMsg = new AIUIMessage(AIUIConstant.CMD_STOP_RECORD, 0, 0, params, null);
+                    mAIUIAgent.sendMessage(stopWriteMsg);
+                    callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
+                }
+            });
 
-            mAIUIAgent.sendMessage(stopWriteMsg);
         } else if ("startText".equals(action)) {
             Log.i(TAG, "start text nlp");
-            String text = arg_object.getString("text");
-            String params = "data_type=text";
-            if (TextUtils.isEmpty(text)) {
-                text = "成都明天的天气怎么样？";
-            }
-            byte[] textData = text.getBytes();
-            AIUIMessage msg = new AIUIMessage(AIUIConstant.CMD_WRITE, 0, 0, params, textData);
-            mAIUIAgent.sendMessage(msg);
+
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        String text = arg_object.getString("text");
+                        String params = "data_type=text";
+                        if (TextUtils.isEmpty(text)) {
+                            text = "成都明天的天气怎么样？";
+                        }
+                        byte[] textData = text.getBytes();
+                        AIUIMessage msg = new AIUIMessage(AIUIConstant.CMD_WRITE, 0, 0, params, textData);
+                        mAIUIAgent.sendMessage(msg);
+                        callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
+                    } catch (JSONException e) {
+                        callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.ERROR,e.toString()) );
+                    }
+
+                }
+            });
         } else if ("finish".equals(action)) {
             callbackContext.success();
         } else if ("registerNotify".equals(action)) {
             pushContext = callbackContext;
             registerNotifyCallback(callbackContext);
         }else if("ttsPlay".equals(action)){
-            String text = arg_object.getString("text");
-            int code = mTts.startSpeaking(text, mTtsListener);
-//			/**
-//			 * 只保存音频不进行播放接口,调用此接口请注释startSpeaking接口
-//			 * text:要合成的文本，uri:需要保存的音频全路径，listener:回调接口
-//			*/
-//			String path = Environment.getExternalStorageDirectory()+"/tts.pcm";
-//			int code = mTts.synthesizeToUri(text, path, mTtsListener);
-
-            if (code != ErrorCode.SUCCESS) {
-                if(code == ErrorCode.ERROR_COMPONENT_NOT_INSTALLED){
-                    //未安装则跳转到提示安装页面
-                    callbackContext.error("未安装语记");
-                }else {
-                    callbackContext.error("语音合成失败,错误码: " + code);
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    try {
+                        String text = arg_object.getString("text");
+                        int code = mTts.startSpeaking(text, mTtsListener);
+                        if (code != ErrorCode.SUCCESS) {
+                            if(code == ErrorCode.ERROR_COMPONENT_NOT_INSTALLED){
+                                //未安装则跳转到提示安装页面
+                                callbackContext.error("未安装语记");
+                            }else {
+                                callbackContext.error("语音合成失败,错误码: " + code);
+                            }
+                        }else{
+                            callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
+                        }
+                    } catch (JSONException e) {
+                        callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.ERROR,e.toString()) );
+                    }
                 }
-            }else{
-                callbackContext.success();
-            }
+            });
         }
         else {
             Log.e(TAG, "Invalid action : " + action);

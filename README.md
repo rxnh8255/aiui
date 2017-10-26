@@ -45,7 +45,7 @@ window.aiuiPlugin.registerNotify(function (res) {
 
 4.解析文字信息
 ```javascript
-window.pushPlugin.startText("message",function () {
+window.aiuiPlugin.startText("message",function () {
     console.log("ok");
 },function (err){
     console.log(err);
@@ -54,9 +54,15 @@ window.pushPlugin.startText("message",function () {
 
 5.TTS合成语音
 ```javascript
-window.pushPlugin.ttsPlay("message",function () {
+window.aiuiPlugin.ttsPlay("message",function () {
     console.log("ok");
 },function (err){
     console.log(err);
 });
+```
+
+6.Finish
+调用后将不再发送注册消息
+```
+window.aiuiPlugin.finish();
 ```
