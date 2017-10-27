@@ -215,7 +215,11 @@ public class AIUIPlugin extends CordovaPlugin {
             callbackContext.success();
         } else if ("registerNotify".equals(action)) {
             pushContext = callbackContext;
-            registerNotifyCallback(callbackContext);
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    registerNotifyCallback(callbackContext);
+                }
+            });
         }else if("ttsPlay".equals(action)){
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
