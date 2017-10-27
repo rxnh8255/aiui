@@ -59,6 +59,13 @@ window.aiuiPlugin.ttsPlay("message",function () {
 },function (err){
     console.log(err);
 });
+
+window.aiuiPlugin.ttsPause(function () {},function (){});
+
+window.aiuiPlugin.ttsStop(function () {},function (){});
+
+window.aiuiPlugin.ttsResume(function () {},function (){});
+
 ```
 
 6.Finish

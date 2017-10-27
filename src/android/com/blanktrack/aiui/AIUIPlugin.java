@@ -158,8 +158,6 @@ public class AIUIPlugin extends CordovaPlugin {
                     callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
                 }
             });
-
-
         }else if("registFamily".equals(action)){
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
@@ -173,10 +171,8 @@ public class AIUIPlugin extends CordovaPlugin {
                     } catch (JSONException e) {
                         callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.ERROR,e.toString()) );
                     }
-
                 }
             });
-
         }
         else if ("stop".equals(action)) {
             Log.i(TAG, "stop voice nlp");
@@ -241,6 +237,15 @@ public class AIUIPlugin extends CordovaPlugin {
                     }
                 }
             });
+        }else if("ttsPause".equals(action)){
+            mTts.pauseSpeaking();
+            callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
+        }else if("ttsStop".equals(action)){
+            mTts.stopSpeaking();
+            callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
+        }else if("ttsResume".equals(action)){
+            mTts.resumeSpeaking();
+            callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
         }
         else {
             Log.e(TAG, "Invalid action : " + action);

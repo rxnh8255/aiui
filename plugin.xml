@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-aiui"
-    version="1.0.12"
+    version="1.0.13"
     xmlns="http://apache.org/cordova/ns/plugins/1.0">
     <name>AIUIPlugin</name>
     <dependency id="cordova-plugin-compat" version="^1.0.0" />
