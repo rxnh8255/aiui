@@ -318,22 +318,25 @@ public class AIUIPlugin extends CordovaPlugin {
         @Override
         public void onSpeakBegin() {
             showTip("开始播放");
+            sendEvent("ttsState","begin");
         }
 
         @Override
         public void onSpeakPaused() {
             showTip("暂停播放");
+            sendEvent("ttsState","paused");
         }
 
         @Override
         public void onSpeakResumed() {
             showTip("继续播放");
+            sendEvent("ttsState","resumed");
         }
 
         @Override
         public void onBufferProgress(int percent, int beginPos, int endPos,
                                      String info) {
-            sendEvent("ttsBufferProgress", String.valueOf( percent));
+            //sendEvent("ttsBufferProgress", String.valueOf( percent));
             // 合成进度
 //            mPercentForBuffering = percent;
 //            showTip(String.format(getString(R.string.tts_toast_format),
@@ -342,7 +345,7 @@ public class AIUIPlugin extends CordovaPlugin {
 
         @Override
         public void onSpeakProgress(int percent, int beginPos, int endPos) {
-            sendEvent("ttsSpeakProgress", String.valueOf( percent));
+            //sendEvent("ttsSpeakProgress", String.valueOf( percent));
             // 播放进度
 //            mPercentForPlaying = percent;
 //            showTip(String.format(getString(R.string.tts_toast_format),
@@ -352,6 +355,7 @@ public class AIUIPlugin extends CordovaPlugin {
         @Override
         public void onCompleted(SpeechError error) {
             if (error == null) {
+                sendEvent("ttsState","completed");
                 showTip("播放完成");
             } else if (error != null) {
                 showTip(error.getPlainDescription(true));
@@ -506,6 +510,8 @@ public class AIUIPlugin extends CordovaPlugin {
 
     private void promptForRecord() {
         if (PermissionHelper.hasPermission(this, permission)) {
+            checkAIUIAgent();
+
             // 先发送唤醒消息，改变AIUI内部状态，只有唤醒状态才能接收语音输入
             if (AIUIConstant.STATE_WORKING != this.mAIUIState) {
                 AIUIMessage wakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
