@@ -17,7 +17,7 @@
   "engines": [
     {
       "name": "cordova",
-      "version": ">=5.0.0"
+      "version": ">=6.0.0"
     }
   ],
   "homepage": "https://github.com/rxnh8255/aiui",
@@ -31,5 +31,5 @@
     "type": "git",
     "url": "git+https://github.com/rxnh8255/aiui.git"
   },
-  "version": "1.0.15"
+  "version": "1.0.22"
 }

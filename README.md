@@ -1,5 +1,6 @@
 #讯飞语音AIUI识别服务
 
+Using this plugin requires [Cordova iOS](https://github.com/apache/cordova-ios) and [Cordova Android](https://github.com/apache/cordova-android).
 ## Installing the plugin
 
 ```

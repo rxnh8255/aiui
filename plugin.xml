@@ -1,14 +1,15 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-aiui"
-    version="1.0.15"
+    version="1.0.22"
     xmlns="http://apache.org/cordova/ns/plugins/1.0">
     <name>AIUIPlugin</name>
-    <dependency id="cordova-plugin-compat" version="^1.0.0" />
+    <dependency id="cordova-plugin-compat" version="^1.1.0" />
     <preference name="APPID" />
     <js-module name="AIUIPlugin" src="www/AIUIPlugin.js">
         <clobbers target="AIUIPlugin" />
     </js-module>
     <platform name="android">
+        <framework src="aiui.gradle" custom="true" type="gradleReference" />
         <config-file parent="/*" target="res/xml/config.xml">
             <feature name="AIUIPlugin">
                 <param name="android-package" value="com.blanktrack.aiui.AIUIPlugin" />
@@ -34,6 +35,32 @@
 
         <source-file src="src/android/com/blanktrack/aiui/AIUIPlugin.java"
             target-dir="src/com/blanktrack/aiui" />
+
+        <source-file src="src/android/com/blanktrack/wakeup/WakeUp.java"
+            target-dir="src/com/blanktrack/wakeup" />
+        <source-file src="src/android/com/blanktrack/wakeup/androidsystemimpl/AudioRecordThread.java"
+            target-dir="src/com/blanktrack/wakeup/androidsystemimpl" />
+        <source-file src="src/android/com/blanktrack/wakeup/androidsystemimpl/PlatformFactoryImpl.java"
+            target-dir="src/com/blanktrack/wakeup/androidsystemimpl" />
+        <source-file src="src/android/com/blanktrack/wakeup/androidsystemimpl/WakeUpDecodeThread.java"
+            target-dir="src/com/blanktrack/wakeup/androidsystemimpl" />
+        <source-file src="src/android/com/blanktrack/wakeup/androidsystemimpl/WakeUpImpl.java"
+            target-dir="src/com/blanktrack/wakeup/androidsystemimpl" />
+        <source-file src="src/android/com/blanktrack/wakeup/androidsystemimpl/WakeUpNative.java"
+            target-dir="src/com/blanktrack/wakeup/androidsystemimpl" />
+        <source-file src="src/android/com/blanktrack/wakeup/systeminterface/IAudioRecord.java"
+            target-dir="src/com/blanktrack/wakeup/systeminterface" />
+        <source-file src="src/android/com/blanktrack/wakeup/systeminterface/IPlatformFactory.java"
+            target-dir="src/com/blanktrack/wakeup/systeminterface" />
+        <source-file src="src/android/com/blanktrack/wakeup/systeminterface/IWakeUp.java"
+            target-dir="src/com/blanktrack/wakeup/systeminterface" />
+        <source-file src="src/android/com/blanktrack/wakeup/util/CommonUtil.java"
+            target-dir="src/com/blanktrack/wakeup/util" />
+        <source-file src="src/android/com/blanktrack/wakeup/util/FileUtil.java"
+            target-dir="src/com/blanktrack/wakeup/util" />
+        <source-file src="src/android/com/blanktrack/wakeup/util/LogUtil.java"
+            target-dir="src/com/blanktrack/wakeup/util" />
+
         <source-file src="libs/cfg/aiui_phone.cfg" target-dir="assets/cfg" />
         <source-file src="libs/vad/meta_vad_16k.jet" target-dir="assets/vad" />
         <source-file src="libs/Msc.jar" target-dir="libs" />
@@ -41,10 +68,22 @@
         <source-file src="libs/arm64-v8a/libmsc.so" target-dir="libs/arm64-v8a" />
         <source-file src="libs/armeabi/libmsc.so" target-dir="libs/armeabi" />
         <source-file src="libs/armeabi-v7a/libmsc.so" target-dir="libs/armeabi-v7a" />
-        <source-file src="libs/mips/libmsc.so" target-dir="libs/mips" />
-        <source-file src="libs/mips64/libmsc.so" target-dir="libs/mips64" />
         <source-file src="libs/x86/libmsc.so" target-dir="libs/x86" />
         <source-file src="libs/x86_64/libmsc.so" target-dir="libs/x86_64" />
-
+        <source-file src="libs/arm64-v8a/libbdEASRAndroid.so" target-dir="libs/arm64-v8a" />
+        <source-file src="libs/armeabi/libbdEASRAndroid.so" target-dir="libs/armeabi" />
+        <source-file src="libs/armeabi-v7a/libbdEASRAndroid.so" target-dir="libs/armeabi-v7a" />
+        <source-file src="libs/x86/libbdEASRAndroid.so" target-dir="libs/x86" />
+        <source-file src="libs/x86_64/libbdEASRAndroid.so" target-dir="libs/x86_64" />
+        <source-file src="libs/arm64-v8a/libbdEasrS1MergeNormal.so" target-dir="libs/arm64-v8a" />
+        <source-file src="libs/armeabi/libbdEasrS1MergeNormal.so" target-dir="libs/armeabi" />
+        <source-file src="libs/armeabi-v7a/libbdEasrS1MergeNormal.so" target-dir="libs/armeabi-v7a" />
+        <source-file src="libs/x86/libbdEasrS1MergeNormal.so" target-dir="libs/x86" />
+        <source-file src="libs/x86_64/libbdEasrS1MergeNormal.so" target-dir="libs/x86_64" />
+        <source-file src="libs/mips/libmsc.so" target-dir="libs/mips" />
+        <source-file src="libs/mips64/libmsc.so" target-dir="libs/mips64" />
+        <source-file src="cpp/Interface.h" target-dir="cpp" />
+        <source-file src="cpp/wakeup.cpp" target-dir="cpp" />
+        <source-file src="cpp/CMakeLists.txt" target-dir="cpp" />
     </platform>
 </plugin>

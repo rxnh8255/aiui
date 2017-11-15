@@ -10,6 +10,10 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.blanktrack.wakeup.WakeUp;
+import com.blanktrack.wakeup.androidsystemimpl.PlatformFactoryImpl;
+import com.blanktrack.wakeup.systeminterface.IPlatformFactory;
+import com.blanktrack.wakeup.systeminterface.IWakeUp;
 import com.iflytek.aiui.AIUIAgent;
 import com.iflytek.aiui.AIUIConstant;
 import com.iflytek.aiui.AIUIEvent;
@@ -50,6 +54,9 @@ public class AIUIPlugin extends CordovaPlugin {
     private SpeechSynthesizer mTts;
     private String voicer = "xiaoyan";
 
+    private IPlatformFactory platformFactory;
+    private WakeUp wakeUp;
+
     public static CallbackContext getCurrentCallbackContext() {
         return pushContext;
     }
@@ -83,8 +90,41 @@ public class AIUIPlugin extends CordovaPlugin {
         SpeechUtility.createUtility(context, "appid="+applicationInfo.metaData.getString("com.blanktrack.appid"));
 
         mTts = SpeechSynthesizer.createSynthesizer(context, mTtsInitListener);
+
+        //初始化唤醒
+        platformFactory = new PlatformFactoryImpl(context);
+
+        promptForRecord();
+
         super.initialize(cordova, webView);
     }
+
+    private IWakeUp.IWakeUpListener wakeUpListener = new IWakeUp.IWakeUpListener() {
+        @Override
+        public void onWakeUpSucceed() {
+
+            Log.i("wakewake","唤醒成功.");
+            wakeUp.stopWakeUp();
+
+            checkAIUIAgent();
+
+            // 先发送唤醒消息，改变AIUI内部状态，只有唤醒状态才能接收语音输入
+            if (AIUIConstant.STATE_WORKING != mAIUIState) {
+                AIUIMessage wakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
+                mAIUIAgent.sendMessage(wakeupMsg);
+            }
+            // 打开AIUI内部录音机，开始录音
+            String params = "sample_rate=16000,data_type=audio";
+            AIUIMessage writeMsg = new AIUIMessage(AIUIConstant.CMD_START_RECORD, 0, 0, params, null);
+            mAIUIAgent.sendMessage(writeMsg);
+
+//            Toast.makeText(DcsSampleMainActivity.this,
+//                    getResources().getString(R.string.wakeup_succeed),
+//                    Toast.LENGTH_SHORT)
+//                    .show();
+//            voiceButton.performClick();
+        }
+    };
 
 
     private InitListener mTtsInitListener = new InitListener() {
@@ -154,7 +194,16 @@ public class AIUIPlugin extends CordovaPlugin {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
                     Log.i(TAG, "start voice nlp");
-                    promptForRecord();
+                    //promptForRecord();
+                    // 先发送唤醒消息，改变AIUI内部状态，只有唤醒状态才能接收语音输入
+                    if (AIUIConstant.STATE_WORKING != mAIUIState) {
+                        AIUIMessage wakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
+                        mAIUIAgent.sendMessage(wakeupMsg);
+                    }
+                    // 打开AIUI内部录音机，开始录音
+                    String params = "sample_rate=16000,data_type=audio";
+                    AIUIMessage writeMsg = new AIUIMessage(AIUIConstant.CMD_START_RECORD, 0, 0, params, null);
+                    mAIUIAgent.sendMessage(writeMsg);
                     callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
                 }
             });
@@ -210,6 +259,7 @@ public class AIUIPlugin extends CordovaPlugin {
         } else if ("finish".equals(action)) {
             callbackContext.success();
         } else if ("registerNotify".equals(action)) {
+
             pushContext = callbackContext;
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
@@ -299,6 +349,12 @@ public class AIUIPlugin extends CordovaPlugin {
     @Override
     public void onDestroy() {
         super.onDestroy();
+
+        //释放资源
+        wakeUp.removeWakeUpListener(wakeUpListener);
+        wakeUp.stopWakeUp();
+        wakeUp.releaseWakeUp();
+
         if (null != this.mAIUIAgent) {
             AIUIMessage stopMsg = new AIUIMessage(AIUIConstant.CMD_STOP, 0, 0, null, null);
             mAIUIAgent.sendMessage(stopMsg);
@@ -439,12 +495,15 @@ public class AIUIPlugin extends CordovaPlugin {
 
                 case AIUIConstant.EVENT_START_RECORD: {
                     Log.i(TAG, "on event: " + event.eventType);
+                    wakeUp.stopWakeUp();
                     sendEvent("start", "ok");
                 }
                 break;
 
                 case AIUIConstant.EVENT_STOP_RECORD: {
                     Log.i(TAG, "on event: " + event.eventType);
+
+                    wakeUp.startWakeUp();
                     sendEvent("stop", "ok");
                 }
                 break;
@@ -510,17 +569,13 @@ public class AIUIPlugin extends CordovaPlugin {
 
     private void promptForRecord() {
         if (PermissionHelper.hasPermission(this, permission)) {
-            checkAIUIAgent();
+            // init唤醒
+            wakeUp = new WakeUp(platformFactory.getWakeUp(),
+                    platformFactory.getAudioRecord());
+            wakeUp.addWakeUpListener(wakeUpListener);
+            // 开始录音，监听是否说了唤醒词
+            wakeUp.startWakeUp();
 
-            // 先发送唤醒消息，改变AIUI内部状态，只有唤醒状态才能接收语音输入
-            if (AIUIConstant.STATE_WORKING != this.mAIUIState) {
-                AIUIMessage wakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
-                mAIUIAgent.sendMessage(wakeupMsg);
-            }
-            // 打开AIUI内部录音机，开始录音
-            String params = "sample_rate=16000,data_type=audio";
-            AIUIMessage writeMsg = new AIUIMessage(AIUIConstant.CMD_START_RECORD, 0, 0, params, null);
-            mAIUIAgent.sendMessage(writeMsg);
         } else {
             getMicPermission(0);
         }
