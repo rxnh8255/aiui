@@ -70,7 +70,7 @@ public class AIUIPlugin extends CordovaPlugin {
     }
     /**
      * Called after plugin construction and fields have been initialized.
-     * Prefer to use pluginInitialize instead since there is no value in
+     * Prefer to use  pluginInitialize instead since there is no value in
      * having parameters on the initialize() function.
      *
      * @param cordova
