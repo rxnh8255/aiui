@@ -1,6 +1,12 @@
 
 var AIUIPlugin = function() {};
 
+AIUIPlugin.prototype.wakeup = function(success, fail) {
+	return cordova.exec(success, fail, "AIUIPlugin", "wakeup", [{}]);
+};
+AIUIPlugin.prototype.sleep = function(success, fail) {
+	return cordova.exec(success, fail, "AIUIPlugin", "sleep", [{}]);
+};
 AIUIPlugin.prototype.start = function(success, fail) {
 	return cordova.exec(success, fail, "AIUIPlugin", "start", [{}]);
 };

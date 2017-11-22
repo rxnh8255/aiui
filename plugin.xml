@@ -1,10 +1,11 @@
 <?xml version='1.0' encoding='utf-8'?>
 <plugin xmlns:android="http://schemas.android.com/apk/res/android" id="cordova-plugin-aiui"
-    version="1.0.15"
+    version="1.0.25"
     xmlns="http://apache.org/cordova/ns/plugins/1.0">
     <name>AIUIPlugin</name>
     <dependency id="cordova-plugin-compat" version="^1.0.0" />
     <preference name="APPID" />
+    <preference name="BAPPID" />
     <js-module name="AIUIPlugin" src="www/AIUIPlugin.js">
         <clobbers target="AIUIPlugin" />
     </js-module>
@@ -15,6 +16,18 @@
             </feature>
         </config-file>
         <config-file target="AndroidManifest.xml" parent="/manifest/application">
+            <meta-data
+                android:name="com.baidu.speech.APP_ID"
+                android:value="$BAPPID" />
+            <meta-data
+                android:name="com.baidu.speech.API_KEY"
+                android:value="BEaA7Pk5LPkdvZnpNvM81xra" />
+            <meta-data
+                android:name="com.baidu.speech.SECRET_KEY"
+                android:value="fda5a5cfbce396f20b21c3510412989d" />
+            <service
+                android:name="com.baidu.speech.VoiceRecognitionService"
+                android:exported="false" />
             <meta-data android:name="com.blanktrack.appid" android:value="$APPID\0" />
         </config-file>
         <config-file parent="/*" target="AndroidManifest.xml">
@@ -36,15 +49,45 @@
             target-dir="src/com/blanktrack/aiui" />
         <source-file src="libs/cfg/aiui_phone.cfg" target-dir="assets/cfg" />
         <source-file src="libs/vad/meta_vad_16k.jet" target-dir="assets/vad" />
+        <source-file src="libs/WakeUp.bin" target-dir="assets" />
         <source-file src="libs/Msc.jar" target-dir="libs" />
         <source-file src="libs/Sunflower.jar" target-dir="libs" />
+        <source-file src="libs/bdasr_V3_20170929_c8984af.jar" target-dir="libs" />
         <source-file src="libs/arm64-v8a/libmsc.so" target-dir="libs/arm64-v8a" />
         <source-file src="libs/armeabi/libmsc.so" target-dir="libs/armeabi" />
         <source-file src="libs/armeabi-v7a/libmsc.so" target-dir="libs/armeabi-v7a" />
-        <source-file src="libs/mips/libmsc.so" target-dir="libs/mips" />
-        <source-file src="libs/mips64/libmsc.so" target-dir="libs/mips64" />
         <source-file src="libs/x86/libmsc.so" target-dir="libs/x86" />
         <source-file src="libs/x86_64/libmsc.so" target-dir="libs/x86_64" />
+
+        <source-file src="libs/arm64-v8a/libBaiduSpeechSDK.so" target-dir="libs/arm64-v8a" />
+        <source-file src="libs/armeabi/libBaiduSpeechSDK.so" target-dir="libs/armeabi" />
+        <source-file src="libs/armeabi-v7a/libBaiduSpeechSDK.so" target-dir="libs/armeabi-v7a" />
+        <source-file src="libs/x86/libBaiduSpeechSDK.so" target-dir="libs/x86" />
+        <source-file src="libs/x86_64/libBaiduSpeechSDK.so" target-dir="libs/x86_64" />
+
+        <source-file src="libs/arm64-v8a/libbd_easr_s1_merge_normal_20151216.dat.so" target-dir="libs/arm64-v8a" />
+        <source-file src="libs/armeabi/libbd_easr_s1_merge_normal_20151216.dat.so" target-dir="libs/armeabi" />
+        <source-file src="libs/armeabi-v7a/libbd_easr_s1_merge_normal_20151216.dat.so" target-dir="libs/armeabi-v7a" />
+        <source-file src="libs/x86/libbd_easr_s1_merge_normal_20151216.dat.so" target-dir="libs/x86" />
+        <source-file src="libs/x86_64/libbd_easr_s1_merge_normal_20151216.dat.so" target-dir="libs/x86_64" />
+
+        <source-file src="libs/arm64-v8a/libbdEASRAndroid.so" target-dir="libs/arm64-v8a" />
+        <source-file src="libs/armeabi/libbdEASRAndroid.so" target-dir="libs/armeabi" />
+        <source-file src="libs/armeabi-v7a/libbdEASRAndroid.so" target-dir="libs/armeabi-v7a" />
+        <source-file src="libs/x86/libbdEASRAndroid.so" target-dir="libs/x86" />
+        <source-file src="libs/x86_64/libbdEASRAndroid.so" target-dir="libs/x86_64" />
+
+        <source-file src="libs/arm64-v8a/libglobal.cmvn.so" target-dir="libs/arm64-v8a" />
+        <source-file src="libs/armeabi/libglobal.cmvn.so" target-dir="libs/armeabi" />
+        <source-file src="libs/armeabi-v7a/libglobal.cmvn.so" target-dir="libs/armeabi-v7a" />
+        <source-file src="libs/x86/libglobal.cmvn.so" target-dir="libs/x86" />
+        <source-file src="libs/x86_64/libglobal.cmvn.so" target-dir="libs/x86_64" />
+
+        <source-file src="libs/arm64-v8a/libvad.dnn.so" target-dir="libs/arm64-v8a" />
+        <source-file src="libs/armeabi/libvad.dnn.so" target-dir="libs/armeabi" />
+        <source-file src="libs/armeabi-v7a/libvad.dnn.so" target-dir="libs/armeabi-v7a" />
+        <source-file src="libs/x86/libvad.dnn.so" target-dir="libs/x86" />
+        <source-file src="libs/x86_64/libvad.dnn.so" target-dir="libs/x86_64" />
 
     </platform>
 </plugin>

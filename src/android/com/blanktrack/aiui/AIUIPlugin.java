@@ -10,6 +10,9 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Log;
 
+import com.baidu.speech.EventListener;
+import com.baidu.speech.EventManager;
+import com.baidu.speech.EventManagerFactory;
 import com.iflytek.aiui.AIUIAgent;
 import com.iflytek.aiui.AIUIConstant;
 import com.iflytek.aiui.AIUIEvent;
@@ -35,6 +38,8 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Created by Blank on 2017-08-24.
@@ -46,6 +51,7 @@ public class AIUIPlugin extends CordovaPlugin {
     private AIUIAgent mAIUIAgent = null;
     private int mAIUIState = AIUIConstant.STATE_IDLE;
     private String permission = Manifest.permission.RECORD_AUDIO;
+    private EventManager wakeup;
 
     private SpeechSynthesizer mTts;
     private String voicer = "xiaoyan";
@@ -71,6 +77,7 @@ public class AIUIPlugin extends CordovaPlugin {
      */
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
+        super.initialize(cordova, webView);
         Context context = this.cordova.getActivity().getApplicationContext();
 
         ApplicationInfo applicationInfo = null;
@@ -81,9 +88,12 @@ public class AIUIPlugin extends CordovaPlugin {
         }
 
         SpeechUtility.createUtility(context, "appid="+applicationInfo.metaData.getString("com.blanktrack.appid"));
+        //SpeechUtility.createUtility(context, "appid=57a016c4");
 
         mTts = SpeechSynthesizer.createSynthesizer(context, mTtsInitListener);
-        super.initialize(cordova, webView);
+
+        wakeup = EventManagerFactory.create(context, "wp");
+        wakeup.registerListener(wakeupListener);
     }
 
 
@@ -146,15 +156,73 @@ public class AIUIPlugin extends CordovaPlugin {
         }
     }
 
+    EventListener wakeupListener = new EventListener() {
+        @Override
+        public void onEvent(String name, String params, byte[] data, int offset, int length) {
+            Log.d(TAG, String.format("event: name=%s, params=%s", name, params));
+
+            //唤醒成功
+            if(name.equals("wp.data")){
+                try {
+                    JSONObject json = new JSONObject(params);
+                    int errorCode = json.getInt("errorCode");
+                    if(errorCode == 0){
+                        //唤醒成功
+                        sendEvent("wakeup",json.toString());
+                        Log.i(TAG,"baidu唤醒成功了了了了");
+                    } else {
+                        //唤醒失败
+                        Log.i(TAG,"baidu唤醒失败l了了了了");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } else if("wp.exit".equals(name)){
+                //唤醒已停止
+                Log.i(TAG,"baidu唤醒停止停止");
+                sendEvent("sleep","true");
+            }
+
+        }
+    };
+
     @Override
     public boolean execute(final String action, final JSONArray args, final CallbackContext callbackContext) throws JSONException {
         final JSONObject arg_object = args.getJSONObject(0);
         checkAIUIAgent();
-        if ("start".equals(action)) {
+        if ("wakeup".equals(action)) {
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    promptForRecord();
+                    callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
+                }
+            });
+        }
+        else if("sleep".equals(action)){
+
+            cordova.getThreadPool().execute(new Runnable() {
+                public void run() {
+                    wakeup.send(com.baidu.speech.asr.SpeechConstant.WAKEUP_STOP, null, null, 0, 0);
+                }
+            });
+
+        }
+        else if ("start".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
                     Log.i(TAG, "start voice nlp");
-                    promptForRecord();
+
+                    // 先发送唤醒消息，改变AIUI内部状态，只有唤醒状态才能接收语音输入
+                    if (AIUIConstant.STATE_WORKING != mAIUIState) {
+                        AIUIMessage wakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
+                        mAIUIAgent.sendMessage(wakeupMsg);
+                    }
+                    // 打开AIUI内部录音机，开始录音
+                    String params1 = "sample_rate=16000,data_type=audio";
+                    AIUIMessage writeMsg = new AIUIMessage(AIUIConstant.CMD_START_RECORD, 0, 0, params1, null);
+                    mAIUIAgent.sendMessage(writeMsg);
+
+                    //promptForRecord();
                     callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
                 }
             });
@@ -299,6 +367,7 @@ public class AIUIPlugin extends CordovaPlugin {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        wakeup.send(com.baidu.speech.asr.SpeechConstant.WAKEUP_STOP, "{}", null, 0, 0);
         if (null != this.mAIUIAgent) {
             AIUIMessage stopMsg = new AIUIMessage(AIUIConstant.CMD_STOP, 0, 0, null, null);
             mAIUIAgent.sendMessage(stopMsg);
@@ -384,7 +453,7 @@ public class AIUIPlugin extends CordovaPlugin {
             switch (event.eventType) {
                 case AIUIConstant.EVENT_WAKEUP:
                     Log.i(TAG, "on event: " + event.eventType);
-                    sendEvent("wakeup", "ok");
+                    sendEvent("wakeupAiui", "ok");
                     break;
 
                 case AIUIConstant.EVENT_RESULT: {
@@ -510,17 +579,15 @@ public class AIUIPlugin extends CordovaPlugin {
 
     private void promptForRecord() {
         if (PermissionHelper.hasPermission(this, permission)) {
-            checkAIUIAgent();
 
-            // 先发送唤醒消息，改变AIUI内部状态，只有唤醒状态才能接收语音输入
-            if (AIUIConstant.STATE_WORKING != this.mAIUIState) {
-                AIUIMessage wakeupMsg = new AIUIMessage(AIUIConstant.CMD_WAKEUP, 0, 0, "", null);
-                mAIUIAgent.sendMessage(wakeupMsg);
-            }
-            // 打开AIUI内部录音机，开始录音
-            String params = "sample_rate=16000,data_type=audio";
-            AIUIMessage writeMsg = new AIUIMessage(AIUIConstant.CMD_START_RECORD, 0, 0, params, null);
-            mAIUIAgent.sendMessage(writeMsg);
+            Map<String, Object> params = new LinkedHashMap<String, Object>();
+            params.put(com.baidu.speech.asr.SpeechConstant.APP_ID, "10099877");
+            params.put(com.baidu.speech.asr.SpeechConstant.ACCEPT_AUDIO_VOLUME, false);
+            params.put(com.baidu.speech.asr.SpeechConstant.WP_WORDS_FILE, "assets:///WakeUp.bin");
+            String json = null; // 这里可以替换成你需要测试的json
+            json = new JSONObject(params).toString();
+            wakeup.send(com.baidu.speech.asr.SpeechConstant.WAKEUP_START, json, null, 0, 0);
+
         } else {
             getMicPermission(0);
         }
