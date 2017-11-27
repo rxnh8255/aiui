@@ -92,8 +92,6 @@ public class AIUIPlugin extends CordovaPlugin {
 
         mTts = SpeechSynthesizer.createSynthesizer(context, mTtsInitListener);
 
-        wakeup = EventManagerFactory.create(context, "wp");
-        wakeup.registerListener(wakeupListener);
     }
 
 
@@ -193,6 +191,7 @@ public class AIUIPlugin extends CordovaPlugin {
         if ("wakeup".equals(action)) {
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
+                    Log.i("wakeup","唤醒kaishi了");
                     promptForRecord();
                     callbackContext.sendPluginResult( new PluginResult(PluginResult.Status.OK) );
                 }
@@ -202,7 +201,12 @@ public class AIUIPlugin extends CordovaPlugin {
 
             cordova.getThreadPool().execute(new Runnable() {
                 public void run() {
-                    wakeup.send(com.baidu.speech.asr.SpeechConstant.WAKEUP_STOP, null, null, 0, 0);
+                    Log.i("wakeup","唤醒停止了");
+                    if(wakeup!= null) {
+                        wakeup.send(com.baidu.speech.asr.SpeechConstant.WAKEUP_STOP, null, null, 0, 0);
+                        wakeup.unregisterListener(wakeupListener);
+                        wakeup = null;
+                    }
                 }
             });
 
@@ -579,6 +583,10 @@ public class AIUIPlugin extends CordovaPlugin {
 
     private void promptForRecord() {
         if (PermissionHelper.hasPermission(this, permission)) {
+            Log.i(TAG,"开启唤醒");
+
+            wakeup = EventManagerFactory.create(getApplicationContext(), "wp");
+            wakeup.registerListener(wakeupListener);
 
             Map<String, Object> params = new LinkedHashMap<String, Object>();
             params.put(com.baidu.speech.asr.SpeechConstant.APP_ID, "10099877");
